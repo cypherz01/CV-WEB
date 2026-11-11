@@ -179,6 +179,22 @@
   }
 }
 
+/* Motion preferences. In-page links glide only when motion is welcome; with reduced motion nothing
+   animates or transitions at all (the JS effects check the same query and stay still too). */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 /* Infinite effects pause off screen (src/hooks/use-play-when-visible.ts), so only one loop runs at a time. */
 [data-paused],
 [data-paused] * {
@@ -194,6 +210,26 @@
     to {
       offset-distance: 100%;
     }
+  }
+}
+
+/* ScrollProgress (src/components/ui/scroll-progress.tsx): a scroll-driven animation, no JS. */
+[data-scroll-progress] {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  [data-scroll-progress] {
+    display: block;
+    animation: scroll-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@keyframes scroll-progress {
+  from {
+    scale: 0 1;
+  }
+  to {
+    scale: 1 1;
   }
 }
 

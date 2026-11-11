@@ -28,6 +28,8 @@ export function BlurFade({
   useEffect(() => {
     const el = ref.current
     if (!el || typeof IntersectionObserver === "undefined") return
+    // Reduced motion: never hide anything, so every section is there without scrolling to it.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
 
     let first = true
     const observer = new IntersectionObserver(

@@ -41,6 +41,11 @@ jobs:
       - name: Browser tests (S4)
         run: npx playwright test
 
+      - name: Lighthouse CI, mobile (S5)
+        run: |
+          export CHROME_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")"
+          npm run test:lighthouse
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -49,6 +54,7 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            lighthouse-report/
           retention-days: 7
 
       - name: Upload site for GitHub Pages

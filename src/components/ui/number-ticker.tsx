@@ -1,17 +1,18 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { animate } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
 const format = (n: number) => Math.round(n).toLocaleString("en-GB")
+const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 
 /**
- * Magic UI NumberTicker, adapted so the final value is in the server HTML (no-JS readers, crawlers):
+ * Magic UI NumberTicker, adapted so the final value is in the server HTML (no-JS readers, crawlers),
+ * and counting with requestAnimationFrame instead of motion's spring:
  * - server / no JS: shows `value`
- * - after hydration, if off screen: resets to `startValue`, then springs up to `value` once in view
- * - if already on screen at load: stays on `value` (no visible jump back to zero)
+ * - after hydration, if off screen: resets to `startValue`, then counts up to `value` once in view
+ * - if already on screen at load, or with reduced motion: stays on `value`
  * The whole thing is aria-hidden; pair it with the final value as screen-reader text.
  */
 export function NumberTicker({
@@ -19,12 +20,14 @@ export function NumberTicker({
   startValue = 0,
   prefix = "",
   suffix = "",
+  duration = 1200,
   className,
 }: {
   value: number
   startValue?: number
   prefix?: string
   suffix?: string
+  duration?: number
   className?: string
 }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -32,32 +35,33 @@ export function NumberTicker({
   useEffect(() => {
     const el = ref.current
     if (!el || typeof IntersectionObserver === "undefined") return
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return
 
     let first = true
-    let stop: (() => void) | undefined
+    let frame = 0
     const observer = new IntersectionObserver(([entry]) => {
-      if (first && !entry.isIntersecting) {
-        el.textContent = format(startValue)
-      } else if (entry.isIntersecting && !first) {
-        observer.disconnect()
-        stop = animate(startValue, value, {
-          type: "spring",
-          damping: 60,
-          stiffness: 100,
-          onUpdate: (n) => (el.textContent = format(n)),
-          onComplete: () => (el.textContent = format(value)),
-        }).stop
-      } else if (first) {
-        observer.disconnect() // on screen at load: keep the final value
+      if (first) {
+        first = false
+        if (entry.isIntersecting) observer.disconnect() // on screen at load: keep the final value
+        else el.textContent = format(startValue)
+        return
       }
-      first = false
+      if (!entry.isIntersecting) return
+      observer.disconnect()
+      const start = performance.now()
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / duration)
+        el.textContent = format(startValue + (value - startValue) * easeOutCubic(t))
+        if (t < 1) frame = requestAnimationFrame(tick)
+      }
+      frame = requestAnimationFrame(tick)
     })
     observer.observe(el)
     return () => {
       observer.disconnect()
-      stop?.()
+      cancelAnimationFrame(frame)
     }
-  }, [value, startValue])
+  }, [value, startValue, duration])
 
   return (
     <span aria-hidden="true" data-number-ticker="" className={cn("tabular-nums", className)}>

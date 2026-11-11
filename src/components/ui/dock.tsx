@@ -1,158 +1,76 @@
 "use client"
 
-import React, { useRef, type PropsWithChildren } from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import {
-  motion,
-  MotionValue,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from "motion/react"
-import type { MotionProps } from "motion/react"
+import { useRef, type PointerEvent, type ReactNode } from "react"
 
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { cn } from "@/lib/utils"
 
-export interface DockProps extends VariantProps<typeof dockVariants> {
+/**
+ * Magic UI Dock, rewritten without motion (it was most of the page's JS):
+ * - magnification sets each icon's size from the pointer's distance; a CSS transition smooths it
+ * - off for touch screens ((hover: none) or (pointer: coarse)), where a tap would leave an icon stuck big
+ * - icons have no padding or wrapper, so the child link/button fills the whole (>= 40 px) tap target
+ * - with reduced motion the sizes still change but without the transition (globals.css)
+ */
+export function Dock({
+  children,
+  className,
+  iconSize = 40,
+  iconMagnification = 56,
+  iconDistance = 120,
+}: {
+  children: ReactNode
   className?: string
   iconSize?: number
   iconMagnification?: number
-  disableMagnification?: boolean
   iconDistance?: number
-  direction?: "top" | "middle" | "bottom"
-  children: React.ReactNode
-}
-
-const DEFAULT_SIZE = 40
-const DEFAULT_MAGNIFICATION = 60
-const DEFAULT_DISTANCE = 140
-const DEFAULT_DISABLEMAGNIFICATION = false
-
-
-const dockVariants = cva(
-  "flex w-max items-center justify-center gap-1 rounded-2xl border bg-background/80 p-1.5 backdrop-blur-md sm:gap-2"
-)
-
-const Dock = React.forwardRef<HTMLDivElement, DockProps>(
-  (
-    {
-      className,
-      children,
-      iconSize = DEFAULT_SIZE,
-      iconMagnification = DEFAULT_MAGNIFICATION,
-      disableMagnification = DEFAULT_DISABLEMAGNIFICATION,
-      iconDistance = DEFAULT_DISTANCE,
-      direction = "middle",
-      ...props
-    },
-    ref
-  ) => {
-    const mouseX = useMotionValue(Infinity)
-    // Adapted: no magnification on touch screens, where a tap would leave an icon stuck enlarged.
-    const isTouch = useMediaQuery("(hover: none), (pointer: coarse)", true)
-
-    const renderChildren = () => {
-      return React.Children.map(children, (child) => {
-        if (
-          React.isValidElement<DockIconProps>(child) &&
-          child.type === DockIcon
-        ) {
-          return React.cloneElement(child, {
-            ...child.props,
-            mouseX: mouseX,
-            size: iconSize,
-            magnification: iconMagnification,
-            disableMagnification: disableMagnification || isTouch,
-            distance: iconDistance,
-          })
-        }
-        return child
-      })
-    }
-
-    return (
-      <motion.div
-        ref={ref}
-        onMouseMove={(e) => mouseX.set(e.pageX)}
-        onMouseLeave={() => mouseX.set(Infinity)}
-        {...props}
-        className={cn(dockVariants({ className }), {
-          "items-start": direction === "top",
-          "items-center": direction === "middle",
-          "items-end": direction === "bottom",
-        })}
-      >
-        {renderChildren()}
-      </motion.div>
-    )
-  }
-)
-
-Dock.displayName = "Dock"
-
-export interface DockIconProps extends Omit<
-  MotionProps & React.HTMLAttributes<HTMLDivElement>,
-  "children"
-> {
-  size?: number
-  magnification?: number
-  disableMagnification?: boolean
-  distance?: number
-  mouseX?: MotionValue<number>
-  className?: string
-  children?: React.ReactNode
-  props?: PropsWithChildren
-}
-
-const DockIcon = ({
-  size = DEFAULT_SIZE,
-  magnification = DEFAULT_MAGNIFICATION,
-  disableMagnification,
-  distance = DEFAULT_DISTANCE,
-  mouseX,
-  className,
-  children,
-  ...props
-}: DockIconProps) => {
+}) {
   const ref = useRef<HTMLDivElement>(null)
-  const defaultMouseX = useMotionValue(Infinity)
+  const isTouch = useMediaQuery("(hover: none), (pointer: coarse)", true)
 
-  const distanceCalc = useTransform(mouseX ?? defaultMouseX, (val: number) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 }
-    return val - bounds.x - bounds.width / 2
-  })
+  const icons = () => [...(ref.current?.querySelectorAll<HTMLElement>("[data-dock-icon]") ?? [])]
+  const setSize = (el: HTMLElement, px: number) => {
+    el.style.width = `${px}px`
+    el.style.height = `${px}px`
+  }
 
-  const targetSize = disableMagnification ? size : magnification
-
-  const sizeTransform = useTransform(
-    distanceCalc,
-    [-distance, 0, distance],
-    [size, targetSize, size]
-  )
-
-  const scaleSize = useSpring(sizeTransform, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  })
+  const magnify = (e: PointerEvent) => {
+    if (isTouch || e.pointerType !== "mouse") return
+    for (const el of icons()) {
+      const { x, width } = el.getBoundingClientRect()
+      const distance = Math.abs(e.clientX - (x + width / 2))
+      const t = Math.max(0, 1 - distance / iconDistance)
+      setSize(el, iconSize + (iconMagnification - iconSize) * t)
+    }
+  }
+  const reset = () => icons().forEach((el) => setSize(el, iconSize))
 
   return (
-    // Adapted: no padding or inner wrapper, so the child link/button fills the whole (>= 40 px) tap target.
-    <motion.div
+    <div
       ref={ref}
-      style={{ width: scaleSize, height: scaleSize }}
+      onPointerMove={magnify}
+      onPointerLeave={reset}
+      style={{ "--dock-icon-size": `${iconSize}px` } as React.CSSProperties}
       className={cn(
-        "flex aspect-square shrink-0 items-center justify-center rounded-full *:size-full",
+        "flex w-max items-end justify-center gap-1 rounded-2xl border bg-background/80 p-1.5 backdrop-blur-md sm:gap-2",
         className
       )}
-      {...props}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
-DockIcon.displayName = "DockIcon"
-
-export { Dock, DockIcon, dockVariants }
+export function DockIcon({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      data-dock-icon=""
+      className={cn(
+        "relative flex size-(--dock-icon-size) shrink-0 items-center justify-center rounded-full transition-[width,height] duration-150 ease-out *:size-full",
+        className
+      )}
+    >
+      {children}
+    </div>
+  )
+}

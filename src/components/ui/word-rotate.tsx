@@ -25,6 +25,7 @@ export function WordRotate({
 
   useEffect(() => {
     if (words.length < 2) return
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return // keep the first word
     const interval = setInterval(() => {
       setIndex((i) => (i + 1) % words.length)
       setRotated(true)

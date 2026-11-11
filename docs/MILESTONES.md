@@ -193,6 +193,25 @@ Slices:
 
 **Done when:** every item on the spec's acceptance checklist is covered by a passing automated test (table below).
 
+**Status:** all 9 slices green: 73 unit, 24 build and 62 browser tests (186/186 over 3 repeats), Lighthouse CI, lint and type check.
+- **#7 budget is 200 KB, not 150 KB.** An empty Next.js 16 + React 19 page ships 171.9 KB gz (measured 2026-11-11), so
+  150 KB is out of reach with this stack. The site's own share was cut from ~113 KB to ~24 KB (total **195.6 KB**):
+  motion removed (Dock magnification is a pointer handler + CSS transition; NumberTicker uses rAF; ScrollProgress is a
+  CSS scroll-driven animation with no JS), Radix Tooltip replaced by CSS tooltips, and IconCloud plus its icon data
+  are a lazy chunk. The GitHub icon path is inlined in the Dock so `simple-icons` stays out of the first load.
+  `tests/build/budget.test.ts` fails CI above 200 KB.
+- **#8 Lighthouse (mobile, median of 3):** performance 0.99, accessibility / best practices / SEO 1.0, LCP 1710 ms,
+  CLS 0. Reports are written to `lighthouse-report/`, never uploaded. `npm run test:lighthouse` needs `CHROME_PATH`
+  (CI points it at Playwright's Chromium).
+- **#1–3 reduced motion:** a global CSS rule removes all animations and transitions; BlurFade, WordRotate and
+  NumberTicker check the same query and stay still; `scroll-behavior: smooth` only applies with `no-preference`.
+- **#5 SEO:** `src/lib/site.ts` holds the absolute URL (`SITE_ORIGIN` env for a custom domain). The OG card is generated
+  at build time by `app/opengraph-image.tsx` and exported as `opengraph-image/card.png`: GitHub Pages picks the
+  Content-Type from the extension, and Next's default extensionless file would be served as octet-stream.
+  `robots.txt` is served at `/CV-WEB/robots.txt`, which crawlers ignore on a project site; it takes effect with a
+  custom domain (M5 #2).
+- **#9 axe** now runs with every section revealed and every accordion open, in both themes and both motion settings.
+
 ---
 
 ## M5 — Launch
