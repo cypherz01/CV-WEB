@@ -12,7 +12,8 @@
     "test:build": "vitest run --project build",
     "test:e2e": "npm run build:pages && playwright test",
     "test": "npm run test:unit && npm run test:build && playwright test",
-    "test:lighthouse": "lhci autorun"
+    "test:lighthouse": "lhci autorun",
+    "test:smoke": "playwright test --config playwright.prod.config.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

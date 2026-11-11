@@ -27,16 +27,17 @@ jobs:
       - name: Unit tests (S1 content module, S2 rendered sections)
         run: npm run test:unit
 
-      - name: Build static export under /CV-WEB/
+      # Before the build: the build prints out/cv.pdf with Chromium.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Build static export under /CV-WEB/, plus cv.pdf
         run: npm run build:pages
 
       - name: Build output tests (S3)
         run: npm run test:build
         env:
           SKIP_BUILD: "1"
-
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
 
       - name: Browser tests (S4)
         run: npx playwright test
@@ -76,3 +77,36 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # M5: check the live site after every deploy.
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Smoke test production
+        run: npm run test:smoke
+
+      - name: Lighthouse CI against production, mobile
+        run: |
+          export CHROME_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")"
+          npx lhci autorun --config=lighthouserc.prod.json
+
+      - name: Upload smoke reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report
+          path: |
+            test-results/
+            lighthouse-report/
+          retention-days: 7

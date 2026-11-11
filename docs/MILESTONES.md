@@ -222,6 +222,18 @@ Slices:
 4. Run Lighthouse CI once against production.
 5. Manual: link the site from the GitHub profile (and LinkedIn, if added).
 
+**Status:**
+- **#1 done.** `scripts/build-cv-pdf.mjs` prints the built site (print media, light, reduced motion) to `out/cv.pdf`
+  as the last step of `npm run build:pages`. It is generated rather than committed to `public/`, so it can never drift
+  from `resume.ts`. `tests/build/cv-pdf.test.ts` checks it exists, is A4, is at most 2 pages, and is the Download CV target.
+- **#2 skipped** (optional, needs a domain). When wanted: set `SITE_ORIGIN` and `BASE_PATH=""` at build time, add a
+  `CNAME`, and `robots.txt` starts working.
+- **#3** `tests/smoke/production.spec.ts` (`npm run test:smoke`): HTTPS + 200, no failed asset, `cv.pdf` as
+  `application/pdf`, the OG card as `image/png`. CI's `smoke` job runs it after every deploy.
+- **#4** Lighthouse against production, run once before this deploy: performance 0.99–1.0, accessibility / best
+  practices / SEO 1.0, LCP ~1.0 s, CLS 0. CI's `smoke` job repeats it after every deploy (`lighthouserc.prod.json`).
+- **#5** manual, for the site owner.
+
 ---
 
 ## M6 — Accent colour swap
