@@ -157,6 +157,19 @@ Slices:
 
 **Done when:** every M2 test passes untouched, plus the slices above.
 
+**Status:** all 12 slices green, with no M2 test file edited: 73 unit, 14 build and 50 browser tests (150/150 over 3 repeats), plus lint and type check.
+Magic UI components were copied in with the shadcn CLI (`@magicui` registry in `components.json`) and adapted where the
+tests demanded it; each file's header comment says what changed and why:
+- **BlurFade**: rewritten without motion. The server HTML is never hidden (#2); JS hides a section only if it is fully off screen at load, then reveals it at 20% (#1). Print forces it visible.
+- **NumberTicker**: server-renders the final value, resets to 0 only when off screen, then springs up in view. The whole ticker is `aria-hidden`, and an `sr-only` copy carries the final value, so M2's "£85k is in the page" tests hold.
+- **WordRotate**: a `<span>`, not a second `<h1>`; a CSS entry animation (tw-animate-css) replaces AnimatePresence, whose exit never finished under Playwright's paused clock.
+- **BorderBeam / ShimmerButton**: one CSS keyframe each, coloured from `--accent-brand`, paused off screen by `usePlayWhenVisible` so only one infinite loop runs at a time (#11). The shimmer is a link (`ShimmerLink`) with `data-slot="button"` so print hides it.
+- **Dock**: icons fill their 40 px tap target; magnification is off for `(hover: none), (pointer: coarse)`. Labels are shared by `aria-label` and the Radix tooltip. 8 icons (no Education) so it fits 375 px.
+- **IconCloud**: image URLs only (inline SVG data URIs from `simple-icons`, no icon CDN), no pause button or canvas role, stops when off screen or with reduced motion; only mounted at ≥ 1024 px.
+- **DotPattern**: one SVG `<pattern>`, no JS or motion.
+
+**For M4 #7:** initial JS is ~285 KB gzipped. The chunks without effects (React DOM, Next runtime and router) already total ~172 KB, so the 150 KB budget cannot be met by trimming effects alone. Options: raise the budget, lazy-load IconCloud and the Dock tooltips, or replace motion in the Dock and ScrollProgress.
+
 ---
 
 ## M4 — Hardening (S3, S4, S5)

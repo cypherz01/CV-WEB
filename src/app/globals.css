@@ -179,6 +179,44 @@
   }
 }
 
+/* Infinite effects pause off screen (src/hooks/use-play-when-visible.ts), so only one loop runs at a time. */
+[data-paused],
+[data-paused] * {
+  animation-play-state: paused !important;
+}
+
+@theme {
+  --animate-border-beam: border-beam 8s linear infinite;
+  @keyframes border-beam {
+    from {
+      offset-distance: 0%;
+    }
+    to {
+      offset-distance: 100%;
+    }
+  }
+}
+
+/* BlurFade (src/components/ui/blur-fade.tsx). Only JS ever sets "hidden", so no-JS readers see everything. */
+[data-blur-fade="hidden"] {
+  opacity: 0;
+  filter: blur(6px);
+  translate: 0 -6px;
+}
+[data-blur-fade="shown"] {
+  transition:
+    opacity 0.4s ease-out,
+    filter 0.4s ease-out,
+    translate 0.4s ease-out;
+}
+@media print {
+  [data-blur-fade] {
+    opacity: 1 !important;
+    filter: none !important;
+    translate: none !important;
+  }
+}
+
 /* In-text links use the brand accent (checked for AA contrast in both themes). */
 @utility link {
   color: var(--accent-brand);

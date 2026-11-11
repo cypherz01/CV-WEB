@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Code, ExternalLink as ExternalIcon } from "lucide-react";
 import type { Project, Resume } from "@/data/types";
 import { withBasePath } from "@/lib/base-path";
+import { BorderBeam } from "@/components/ui/border-beam";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ExternalLink } from "./external-link";
@@ -28,7 +29,8 @@ export function Projects({ cv }: { cv: Resume }) {
 function ProjectCard({ project }: { project: Project }) {
   return (
     <article className={cn(project.featured && "md:col-span-2")} data-featured={project.featured || undefined}>
-      <Card className="h-full">
+      <Card className="relative h-full">
+        {project.featured && <BorderBeam />}
         {project.image && (
           <Image
             src={withBasePath(project.image)}

@@ -1,4 +1,6 @@
 import type { Resume } from "@/data/types";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { SiteDock } from "./site-dock";
 import { About } from "./sections/about";
 import { Contact } from "./sections/contact";
 import { Education } from "./sections/education";
@@ -28,6 +30,8 @@ export function CvPage({ cv }: { cv: Resume }) {
         <Contact cv={cv} />
       </main>
       <Footer cv={cv} />
+      <ScrollProgress />
+      <SiteDock github={cv.contact.github} />
     </>
   );
 }

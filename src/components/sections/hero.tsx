@@ -3,10 +3,21 @@ import { Download, Mail, MapPin } from "lucide-react";
 import type { Resume } from "@/data/types";
 import { withBasePath } from "@/lib/base-path";
 import { Button } from "@/components/ui/button";
+import { DotPattern } from "@/components/ui/dot-pattern";
+import { ShimmerLink } from "@/components/ui/shimmer-button";
+import { WordRotate } from "@/components/ui/word-rotate";
 
 export function Hero({ cv }: { cv: Resume }) {
   return (
-    <section id="top" aria-labelledby="hero-name" className="flex flex-col gap-5 pt-10 pb-6 sm:pt-16 print:gap-3 print:pt-0 print:pb-2">
+    <section
+      id="top"
+      aria-labelledby="hero-name"
+      className="relative isolate flex flex-col gap-5 pt-10 pb-6 sm:pt-16 print:gap-3 print:pt-0 print:pb-2"
+    >
+      <DotPattern
+        id="hero-dots"
+        className="-z-10 text-foreground/15 mask-[radial-gradient(ellipse_at_top_right,black,transparent_70%)]"
+      />
       <Image
         src={withBasePath(cv.avatar)}
         alt={cv.name}
@@ -19,7 +30,9 @@ export function Hero({ cv }: { cv: Resume }) {
         <h1 id="hero-name" className="text-4xl font-semibold tracking-tight sm:text-5xl">
           {cv.name}
         </h1>
-        <p className="text-xl font-medium text-accent-brand">{cv.roles[0]}</p>
+        <p className="text-xl font-medium text-accent-brand">
+          <WordRotate words={cv.roles} />
+        </p>
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <MapPin aria-hidden="true" className="size-4" />
           <span>{cv.location}</span>
@@ -27,12 +40,10 @@ export function Hero({ cv }: { cv: Resume }) {
       </div>
       <p className="max-w-prose text-base text-muted-foreground">{cv.pitch}</p>
       <div className="flex flex-wrap gap-3">
-        <Button asChild size="lg" className="bg-accent-brand text-background hover:bg-accent-brand/85">
-          <a href="#contact">
-            <Mail aria-hidden="true" />
-            Contact
-          </a>
-        </Button>
+        <ShimmerLink href="#contact">
+          <Mail aria-hidden="true" />
+          Contact
+        </ShimmerLink>
         <Button asChild size="lg" variant="outline">
           <a href={withBasePath(cv.cvPdf)} download>
             <Download aria-hidden="true" />
