@@ -93,6 +93,8 @@ Slices:
 
 **Done when:** the real CV content passes validation.
 
+**Status:** done. 42 unit tests green. Types: `src/data/types.ts`; helpers: `src/lib/cv.ts`; content: `src/data/resume.ts`; fixture: `src/test/resume-fixture.ts`. `Project.image` is optional and `Project.year`, `Resume.availability` and `Education.start` were added for the real content.
+
 ---
 
 ## M2 — Content, no effects (S2, S3, S4). Shippable at the end.

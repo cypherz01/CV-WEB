@@ -1,7 +1,7 @@
 # Site content (source for `src/data/resume.ts`)
 
 Content for the website. It follows the spec's rules: 2–4 bullets per role,
-project summaries of 140 characters or less, and a pitch under 160 characters. M1 #9 copies this into `resume.ts`.
+project summaries of 140 characters or less, and a pitch under 160 characters. M1 #10 copied this into `src/data/resume.ts`.
 After that, `resume.ts` is the source of truth and this file is only a record.
 
 ## Identity
