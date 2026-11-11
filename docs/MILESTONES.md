@@ -123,6 +123,17 @@ Browser and build slices:
 
 **Done when:** a fixture with an extra role renders that role with no component change. This proves the spec's "updating a job requires editing only `resume.ts`".
 
+**Status:** all 16 slices and the "done when" test green: 68 unit, 12 build and 28 browser tests, plus lint and type check.
+Notes:
+- Sections live in `src/components/sections/`; `src/components/cv-page.tsx` composes them and `page.tsx` passes the real `resume`.
+- Bullets use a plain button disclosure (`role-highlights.tsx`) instead of the Radix Accordion: the list is always rendered and toggled with `hidden`, so it is in the static HTML (#11) and print CSS can reveal it (#14).
+- Links to files in `public/` go through `withBasePath` (`src/lib/base-path.ts`); `next.config.ts` inlines `NEXT_PUBLIC_BASE_PATH` and sets `images.unoptimized`.
+- Print forces light by scoping the `.dark` tokens and the `dark:` variant to `not print`; the root font drops to 10 px so the CV fits 2 A4 pages.
+- One accent focus outline for every element (`:focus-visible` in `globals.css`); shadcn Button's own grey ring was removed.
+- The 5-project layout case clones cards in the browser, since the static export only holds the real data.
+- Title and meta description are already set from `resume` (M4 #5 will test them).
+- "Download CV" links to `/CV-WEB/cv.pdf`, which 404s until M5 #1 generates it.
+
 ---
 
 ## M3 — Magic UI layer (S2, S3, S4)

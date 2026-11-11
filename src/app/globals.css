@@ -2,7 +2,14 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Print always uses the light theme, so dark: utilities only apply on screen. */
+@custom-variant dark {
+  @media not print {
+    &:is(.dark *) {
+      @slot;
+    }
+  }
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -86,6 +93,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+@media not print {
 .dark {
   --background: #09090b;
   --foreground: #fafafa;
@@ -120,6 +128,7 @@
   --sidebar-ring: oklch(0.556 0 0);
   --accent-brand: #818cf8;
 }
+}
 
 @layer base {
   * {
@@ -128,7 +137,53 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* One visible focus ring for everything, in the brand accent (AA on the background in both themes). */
+  :focus-visible {
+    outline: 2px solid var(--accent-brand);
+    outline-offset: 2px;
+  }
   html {
     @apply font-sans;
+  }
+
+  /* Print: a two-page A4 CV. In this layer so the !important rules beat preflight's [hidden]. */
+  @media print {
+    @page {
+      size: A4;
+      margin: 12mm;
+    }
+    html {
+      font-size: 10px; /* every rem-based size shrinks with it */
+    }
+    [data-print-show][hidden] {
+      display: block !important;
+    }
+    button,
+    [data-slot="button"] {
+      display: none !important;
+    }
+    a[href^="http"]::after {
+      content: " (" attr(href) ")";
+      font-weight: normal;
+    }
+    section {
+      break-inside: auto;
+    }
+    h2,
+    h3 {
+      break-after: avoid;
+    }
+    li {
+      break-inside: avoid;
+    }
+  }
+}
+
+/* In-text links use the brand accent (checked for AA contrast in both themes). */
+@utility link {
+  color: var(--accent-brand);
+  text-underline-offset: 4px;
+  &:hover {
+    text-decoration-line: underline;
   }
 }

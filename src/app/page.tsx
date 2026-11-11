@@ -1,3 +1,6 @@
+import { CvPage } from "@/components/cv-page";
+import { resume } from "@/data/resume";
+
 export default function Home() {
-  return <main className="mx-auto w-full max-w-2xl flex-1 px-4" />;
+  return <CvPage cv={resume} />;
 }

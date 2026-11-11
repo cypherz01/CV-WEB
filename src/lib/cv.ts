@@ -7,7 +7,7 @@ export type DateRange = { start: CvDate; end?: CvDate };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
 
-function formatDate(date: CvDate): string {
+export function formatDate(date: CvDate): string {
   const [year, month] = date.split("-");
   return month ? `${MONTHS[Number(month) - 1]} ${year}` : year;
 }
