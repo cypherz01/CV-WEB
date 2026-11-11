@@ -7,7 +7,7 @@
     "build": "next build",
     "build:pages": "node scripts/build-pages.mjs",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test:unit": "vitest run --project unit",
     "test:build": "vitest run --project build",
     "test:e2e": "npm run build:pages && playwright test",
